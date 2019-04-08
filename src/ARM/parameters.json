@@ -1,0 +1,146 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appName": {
+      "value": "MyApp"
+    },
+    "envName": {
+      "value": "Test"
+    },
+    "appServiceName": {
+      "value": "AppService"
+    },
+    "functionName": {
+      "value": "Function"
+    },
+    "AppService-AppSettings": {
+      "value": [
+        {
+          "name": "deployment_branch",
+          "value": "master"
+        },
+        {
+          "name": "SCM_TRACE_LEVEL",
+          "value": "1"
+        },
+        {
+          "name": "SCM_COMMAND_IDLE_TIMEOUT",
+          "value": "60"
+        },
+        {
+          "name": "SCM_LOGSTREAM_TIMEOUT",
+          "value": "1800"
+        },
+        {
+          "name": "SCM_BUILD_ARGS",
+          "value": ""
+        },
+        {
+          "name": "aspnet:PortableCompilationOutput",
+          "value": "true"
+        },
+        {
+          "name": "aspnet:PortableCompilationOutputSnapshotType",
+          "value": "Microsoft.Web.Compilation.Snapshots.SnapshotHelper, Microsoft.Web.Compilation.Snapshots, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"
+        },
+        {
+          "name": "aspnet:DisableFcnDaclRead",
+          "value": "true"
+        },
+        {
+          "name": "SCM_GIT_USERNAME",
+          "value": "windowsazure"
+        },
+        {
+          "name": "SCM_GIT_EMAIL",
+          "value": "windowsazure"
+        },
+        {
+          "name": "webpages:Version",
+          "value": "3.0.0.0"
+        },
+        {
+          "name": "webpages:Enabled",
+          "value": "true"
+        },
+        {
+          "name": "webactivator:assembliesToScan",
+          "value": "Kudu.Services.Web"
+        },
+        {
+          "name": "MobileAppsManagement_EXTENSION_VERSION",
+          "value": "latest"
+        },
+        {
+          "name": "WEBSITE_TIME_ZONE",
+          "value": "E. Europe Standard Time"
+        },
+        {
+          "name": "WEBSITE_MYSQL_GENERAL_LOG",
+          "value": "1"
+        },
+        {
+          "name": "AlertEmailSettings__SupportTeamEmailAddress",
+          "value": "my@email.com"
+        },
+        {
+          "name": "ASPNETCORE_DETAILEDERRORS",
+          "value": "true"
+        },
+        {
+          "name": "DiagnosticServices_EXTENSION_VERSION",
+          "value": "~3"
+        },
+        {
+          "name": "XDT_MicrosoftApplicationInsights_Mode",
+          "value": "recommended"
+        },
+        {
+          "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+          "value": "d9ad368c-2bf6-4ffa-821e-5f07f6517d4f"
+        },
+        {
+          "name": "WEBSITE_MYSQL_SLOW_QUERY_LOG",
+          "value": "0"
+        },
+        {
+          "name": "WEBSITE_NODE_DEFAULT_VERSION",
+          "value": "6.9.1"
+        },
+        {
+          "name": "CHAT_BOT_AzureKeyVault",
+          "value": "https://MyApp-Test-Vaults.vault.azure.net/"
+        },
+        {
+          "name": "ApplicationInsightsAgent_EXTENSION_VERSION",
+          "value": "~2"
+        },
+        {
+          "name": "APPINSIGHTS_SNAPSHOTFEATURE_VERSION",
+          "value": "1.0.0"
+        },
+        {
+          "name": "InstrumentationEngine_EXTENSION_VERSION",
+          "value": "~1"
+        },
+        {
+          "name": "ASPNETCORE_ENVIRONMENT",
+          "value": "Test"
+        },
+        {
+          "name": "SnapshotDebugger_EXTENSION_VERSION",
+          "value": "~1"
+        },
+        {
+          "name": "XDT_MicrosoftApplicationInsights_BaseExtensions",
+          "value": "~1"
+        },
+        {
+          "name": "DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS",
+          "value": "1"
+        }
+      ]
+    }
+  }
+}
