@@ -1,0 +1,348 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "AppService-AppSettings": {
+      "type": "array",
+      "defaultValue": []
+    },
+    "appName": {
+      "type": "string"
+    },
+    "envName": {
+      "type": "string"
+    },
+    "appServiceName": {
+      "type": "string"
+    },
+    "functionName": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "global": {
+      "kv": "-Vaults",
+      "sa": "stacc",
+      "sites": "-Sites",
+      "config": "web",
+      "azHost": ".azurewebsites.net",
+      "scm": ".scm.azurewebsites.net",
+      "sf": "-Serverfarms"
+    },
+
+    "appSettings": "[parameters('AppService-AppSettings')]",
+    "resourceGroupName": "[concat(parameters('appName'),'-', parameters('envName'))]",
+    "resourceGroupAppService": "[concat(variables('resourceGroupName'), '-', parameters('appServiceName'))]",
+    "resourceGroupFunction": "[concat(variables('resourceGroupName'), '-', parameters('functionName'))]",
+
+    "App-Vaults": "[concat(variables('resourceGroupName'), variables('global').kv)]",
+    "App-StorageAccount": "[concat(toLower(concat(parameters('appName'), parameters('envName'))), variables('global').sa)]",
+
+    "App-AppService-Sites": "[concat(variables('resourceGroupAppService'), variables('global').sites)]",
+    "App-AppService-Serverfarms": "[concat(variables('resourceGroupAppService'), variables('global').sf)]",
+    "App-AppService-Config": "[variables('global').config]",
+    "App-AppService-HostNameBindingsName": "[concat(variables('App-AppService-Sites'), '/', variables('App-AppService-Sites'), variables('global').azHost)]",
+    "App-AppService-HostNameBindings": "[concat(variables('App-AppService-Sites'), variables('App-AppService-Sites'), variables('global').azHost)]",
+    "App-AppService-Kudu-HostNameBindings": "[concat(variables('App-AppService-Sites'), variables('App-AppService-Sites'), variables('global').scm)]",
+
+    "App-Function-Sites": "[concat(variables('resourceGroupFunction'), variables('global').sites)]",
+    "App-Function-Serverfarms": "[concat(variables('resourceGroupFunction'), variables('global').sf)]",
+    "App-Function-Config": "[variables('global').config]",
+    "App-Function-HostNameBindingsName": "[concat(variables('App-Function-Sites'), '/', variables('App-Function-Sites'), variables('global').azHost)]",
+    "App-Function-HostNameBindings": "[concat(variables('App-Function-Sites'), variables('App-Function-Sites'), variables('global').azHost)]",
+    "App-Function-Kudu-HostNameBindings": "[concat(variables('App-Function-Sites'), variables('App-Function-Sites'), variables('global').scm)]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "name": "[variables('App-Vaults')]",
+      "apiVersion": "2016-10-01",
+      "location": "[resourceGroup().location]",
+      "tags": {},
+      "scale": null,
+      "properties": {
+        "sku": {
+          "family": "A",
+          "name": "Standard"
+        },
+        "tenantId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        "accessPolicies": [],
+        "enabledForDeployment": false,
+        "enabledForDiskEncryption": false,
+        "enabledForTemplateDeployment": false
+      },
+      "dependsOn": []
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "kind": "Storage",
+      "name": "[variables('App-StorageAccount')]",
+      "apiVersion": "2018-07-01",
+      "location": "[resourceGroup().location]",
+      "tags": {},
+      "properties": {
+        "networkAcls": {
+          "bypass": "AzureServices",
+          "virtualNetworkRules": [],
+          "ipRules": [],
+          "defaultAction": "Allow"
+        },
+        "supportsHttpsTrafficOnly": false,
+        "encryption": {
+          "services": {
+            "file": {
+              "enabled": true
+            },
+            "blob": {
+              "enabled": true
+            }
+          },
+          "keySource": "Microsoft.Storage"
+        }
+      },
+      "dependsOn": []
+    },
+
+    {
+      "type": "Microsoft.Web/sites",
+      "kind": "app",
+      "name": "[variables('App-AppService-Sites')]",
+      "apiVersion": "2016-08-01",
+      "location": "[resourceGroup().location]",
+      "identity": {
+        "principalId": "",
+        "tenantId": "",
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "enabled": true,
+        "hostNameSslStates": [
+          {
+            "name": "[variables('App-AppService-HostNameBindings')]",
+            "sslState": "Disabled",
+            "hostType": "Standard"
+          },
+          {
+            "name": "[variables('App-AppService-Kudu-HostNameBindings')]",
+            "sslState": "Disabled",
+            "hostType": "Repository"
+          }
+        ],
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('App-AppService-Serverfarms'))]",
+        "siteConfig": {
+          "appSettings": "[variables('appSettings')]"
+        },
+        "clientAffinityEnabled": true,
+        "httpsOnly": true
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('App-AppService-Serverfarms'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "sku": {
+        "name": "B1",
+        "tier": "Basic",
+        "size": "B1",
+        "family": "B",
+        "capacity": 1
+      },
+      "kind": "app",
+      "name": "[variables('App-AppService-Serverfarms')]",
+      "apiVersion": "2016-09-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "name": "[variables('App-AppService-Serverfarms')]"
+      },
+      "dependsOn": []
+    },
+    {
+      "type": "Microsoft.Web/sites/hostNameBindings",
+      "name": "[variables('App-AppService-HostNameBindingsName')]",
+      "apiVersion": "2016-08-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "siteName": "[variables('App-AppService-Sites')]",
+        "domainId": null,
+        "hostNameType": "Verified"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('App-AppService-Sites'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites/config",
+      "name": "[concat(variables('App-AppService-Sites'), '/', variables('App-AppService-Config'))]",
+      "apiVersion": "2016-08-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "numberOfWorkers": 1,
+        "defaultDocuments": [
+          "Default.htm",
+          "Default.html",
+          "Default.asp",
+          "index.htm",
+          "index.html",
+          "iisstart.htm",
+          "default.aspx",
+          "index.php",
+          "hostingstart.html"
+        ],
+        "netFrameworkVersion": "v4.0",
+        "requestTracingEnabled": true,
+        "requestTracingExpirationTime": "9999-12-31T23:59:00Z",
+        "remoteDebuggingEnabled": false,
+        "remoteDebuggingVersion": null,
+        "httpLoggingEnabled": true,
+        "logsDirectorySizeLimit": 35,
+        "detailedErrorLoggingEnabled": true,
+        "publishingUsername": "[concat('$', variables('resourceGroupName'))]",
+        "scmType": "VSTSRM",
+        "use32BitWorkerProcess": true,
+        "alwaysOn": true,
+        "appCommandLine": "",
+        "managedPipelineMode": "Integrated",
+        "virtualApplications": [
+          {
+            "virtualPath": "/",
+            "physicalPath": "site\\wwwroot",
+            "preloadEnabled": true,
+            "virtualDirectories": null
+          }
+        ],
+        "loadBalancing": "LeastRequests",
+        "localMySqlEnabled": true,
+        "managedServiceIdentityId": 7123,
+        "minTlsVersion": "1.2",
+        "ftpsState": "AllAllowed"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('App-AppService-Sites'))]"
+      ]
+    },
+
+    {
+      "type": "Microsoft.Web/sites",
+      "kind": "functionapp",
+      "name": "[variables('App-Function-Sites')]",
+      "apiVersion": "2016-08-01",
+      "location": "[resourceGroup().location]",
+      "identity": {
+        "principalId": "",
+        "tenantId": "",
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "enabled": true,
+        "hostNameSslStates": [
+          {
+            "name": "[variables('App-Function-HostNameBindings')]",
+            "sslState": "Disabled",
+            "hostType": "Standard"
+          },
+          {
+            "name": "[variables('App-Function-Kudu-HostNameBindings')]",
+            "sslState": "Disabled",
+            "hostType": "Repository"
+          }
+        ],
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('App-Function-Serverfarms'))]",
+        "clientAffinityEnabled": true,
+        "containerSize": 1536,
+        "httpsOnly": true
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('App-Function-Serverfarms'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "sku": {
+        "name": "Y1",
+        "tier": "Dynamic",
+        "size": "Y1",
+        "family": "Y",
+        "capacity": 0
+      },
+      "kind": "functionapp",
+      "name": "[variables('App-Function-Serverfarms')]",
+      "apiVersion": "2016-09-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "name": "[variables('App-Function-Serverfarms')]",
+      },
+      "dependsOn": []
+    },
+    {
+      "type": "Microsoft.Web/sites/hostNameBindings",
+      "name": "[variables('App-Function-HostNameBindingsName')]",
+      "apiVersion": "2016-08-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "siteName": "[variables('App-Function-Sites')]",
+        "domainId": null,
+        "hostNameType": "Verified"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('App-Function-Sites'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites/config",
+      "name": "[concat(variables('App-Function-Sites'), '/', variables('App-Function-Config'))]",
+      "apiVersion": "2016-08-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "numberOfWorkers": 1,
+        "defaultDocuments": [
+          "Default.htm",
+          "Default.html",
+          "Default.asp",
+          "index.htm",
+          "index.html",
+          "iisstart.htm",
+          "default.aspx",
+          "index.php"
+        ],
+        "netFrameworkVersion": "v4.0",
+        "httpLoggingEnabled": false,
+        "logsDirectorySizeLimit": 35,
+        "detailedErrorLoggingEnabled": false,
+        "publishingUsername": "[concat('$', variables('App-Function-Sites'))]",
+        "appSettings": null,
+        "scmType": "None",
+        "use32BitWorkerProcess": true,
+        "managedPipelineMode": "Integrated",
+        "virtualApplications": [
+          {
+            "virtualPath": "/",
+            "physicalPath": "site\\wwwroot",
+            "preloadEnabled": false,
+            "virtualDirectories": null
+          }
+        ],
+        "loadBalancing": "LeastRequests",
+        "cors": {
+          "allowedOrigins": [
+            "https://functions.azure.com",
+            "https://functions-staging.azure.com",
+            "https://functions-next.azure.com"
+          ],
+          "supportCredentials": false
+        },
+        "managedServiceIdentityId": 7313,
+        "minTlsVersion": "1.2",
+        "ftpsState": "AllAllowed"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('App-Function-Sites'))]"
+      ]
+    }
+
+  ]
+}
