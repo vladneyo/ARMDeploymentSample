@@ -1,0 +1,32 @@
+pool:
+  name: Default
+
+variables:
+  buildConfiguration: 'Release'
+
+trigger:
+  branches:
+    include:
+      - feature/TASK-*
+      - bug/BUG-*
+steps: 
+
+# - script: |
+#     echo [DEBUG] my variable is $(var1)
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet test'
+  inputs:
+    command: test
+    projects: '**/Tests/**/**/*.csproj'
+    arguments: '--configuration $(buildConfiguration) --collect "Code coverage"'
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet publish'
+  inputs:
+    command: publish
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: true
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact'
