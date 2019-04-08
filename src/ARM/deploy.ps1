@@ -35,7 +35,7 @@ param(
  [string]$resourceGroupLocation = "Central US",
 
  [Parameter(Mandatory=$True)]
- [string]$deploymentName = "deployment-init",
+ [string]$deploymentName = "initial",
 
  [Parameter(Mandatory=$True)]
  [string]$templateFilePath = ".\template.json",
